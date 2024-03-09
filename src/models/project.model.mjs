@@ -1,4 +1,5 @@
 import mongoose, { Schema } from "mongoose";
+import aggregatePaginate from "mongoose-aggregate-paginate-v2";
 
 const projectSchema = new Schema(
   {
@@ -17,13 +18,13 @@ const projectSchema = new Schema(
     category: {
       type: String,
       required: true,
-      trim: true,
-      lowercase: true,
     },
   },
   {
     timestamps: true,
   }
 );
+
+projectSchema.plugin(aggregatePaginate);
 
 export const Project = mongoose.model("Project", projectSchema);
