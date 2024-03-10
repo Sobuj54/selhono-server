@@ -10,6 +10,6 @@ app.use(express.urlencoded({ extended: true, limit: "16kb" }));
 
 import projectRouter from "./routers/project.routers.mjs";
 
-app.use("api/v1/projects", projectRouter);
+app.use("/api/v1/projects", projectRouter);
 
 export default app;

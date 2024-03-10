@@ -5,16 +5,22 @@ import { asyncHandler } from "../utils/asyncHandler.mjs";
 
 const getProjectByCategory = asyncHandler(async (req, res) => {
   const { category } = req.params;
+  const { page = 1, limit = 8 } = req.query;
   if (!category.trim()) {
     throw new ApiError(404, "Category is missing.");
   }
 
+  // Create a regex pattern that allows any number of spaces
+  const regexPattern = category.replace(/ /g, "\\s*");
   const query = {
-    category: { $regex: category, $options: "i" },
+    category: { $regex: new RegExp(regexPattern, "i") },
   };
 
-  const projects = await Project.find(query);
-  if (!projects.length) {
+  const projectsAggregate = Project.aggregate([{ $match: query }]);
+
+  const options = { page, limit };
+  const projects = await Project.aggregatePaginate(projectsAggregate, options);
+  if (!projects) {
     throw new ApiError(500, "No projects found.");
   }
 
