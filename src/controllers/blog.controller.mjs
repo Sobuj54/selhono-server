@@ -1,3 +1,4 @@
+import { isValidObjectId } from "mongoose";
 import { Blog } from "../models/blog.model.mjs";
 import { ApiError } from "../utils/ApiError.mjs";
 import { ApiResponse } from "../utils/ApiResponse.mjs";
@@ -62,4 +63,19 @@ const getAllBlogs = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, allBlogs, "All Blogs fetched successfully."));
 });
 
-export { createBlog, getLatestBlog, getAllBlogs };
+const getBlogById = asyncHandler(async (req, res) => {
+  const { blogId } = req.params;
+  if (!isValidObjectId(blogId)) {
+    throw new ApiError(400, "Invalid blog id");
+  }
+
+  const blog = await Blog.findOne({ _id: blogId });
+  if (!blog) {
+    throw new ApiError(404, "No blog found.");
+  }
+  return res
+    .status(200)
+    .json(new ApiResponse(200, blog, "Blog fetched successfully."));
+});
+
+export { createBlog, getLatestBlog, getAllBlogs, getBlogById };
