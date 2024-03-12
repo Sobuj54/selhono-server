@@ -34,4 +34,32 @@ const createBlog = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, newBlog, "Blog created successfully."));
 });
 
-export { createBlog };
+const getLatestBlog = asyncHandler(async (req, res) => {
+  const latestBlog = await Blog.findOne().sort({ createdAt: -1 });
+  if (!latestBlog) {
+    throw new ApiError(404, "No latest blog found.");
+  }
+
+  return res
+    .status(200)
+    .json(
+      new ApiResponse(200, latestBlog, "Fetched latest blog successfully.")
+    );
+});
+
+const getAllBlogs = asyncHandler(async (req, res) => {
+  const latestBlog = await Blog.findOne().sort({ createdAt: -1 });
+  if (!latestBlog) {
+    throw new ApiError(404, "No latest blog found.");
+  }
+  const allBlogs = await Blog.find({ _id: { $ne: latestBlog._id } });
+  if (!allBlogs.length) {
+    throw new ApiError(404, "Blog fetch failed.");
+  }
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, allBlogs, "All Blogs fetched successfully."));
+});
+
+export { createBlog, getLatestBlog, getAllBlogs };
