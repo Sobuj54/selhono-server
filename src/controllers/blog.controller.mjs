@@ -49,12 +49,21 @@ const getLatestBlog = asyncHandler(async (req, res) => {
 });
 
 const getAllBlogs = asyncHandler(async (req, res) => {
+  const { page = 1, limit = 6 } = req.query;
   const latestBlog = await Blog.findOne().sort({ createdAt: -1 });
   if (!latestBlog) {
     throw new ApiError(404, "No latest blog found.");
   }
-  const allBlogs = await Blog.find({ _id: { $ne: latestBlog._id } });
-  if (!allBlogs.length) {
+
+  const blogAggregate = Blog.aggregate([
+    { $match: { _id: { $ne: latestBlog._id } } },
+  ]);
+  const options = {
+    page: parseInt(page),
+    limit: parseInt(limit),
+  };
+  const allBlogs = await Blog.aggregatePaginate(blogAggregate, options);
+  if (!allBlogs) {
     throw new ApiError(404, "Blog fetch failed.");
   }
 
@@ -78,4 +87,24 @@ const getBlogById = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, blog, "Blog fetched successfully."));
 });
 
-export { createBlog, getLatestBlog, getAllBlogs, getBlogById };
+const getLatestBlogs = asyncHandler(async (req, res) => {
+  const { blogId } = req.params;
+  if (!isValidObjectId(blogId)) {
+    throw new ApiError(400, "Invalid blog id");
+  }
+
+  const latestBlogs = await Blog.find({ _id: { $ne: blogId } })
+    .limit(5)
+    .sort({ createdAt: -1 });
+  if (!latestBlogs.length) {
+    throw new ApiError(404, "Latest blog fetch failed.");
+  }
+
+  return res
+    .status(200)
+    .json(
+      new ApiResponse(200, latestBlogs, "Latest blogs fetched successfully.")
+    );
+});
+
+export { createBlog, getLatestBlog, getAllBlogs, getBlogById, getLatestBlogs };
