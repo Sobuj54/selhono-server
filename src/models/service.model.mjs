@@ -6,7 +6,7 @@ const serviceSchema = new Schema(
       type: String,
     },
     description: {
-      type: string,
+      type: String,
     },
     video: {
       type: String,
